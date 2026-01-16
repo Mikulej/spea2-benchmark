@@ -44,20 +44,23 @@ std::mt19937 gen(std::time({}));
 std::uniform_real_distribution<> dis(0.0, 1.0);
 
 //ZDT1 f1
-double getGrade1(const std::vector<double>& values, double parameter) {
+double ztd1f1(const std::vector<double>& values, double parameter) {
     gradeAmount1++;
     return values[0];
 }
 
 //ZDT1 f2
-double getGrade2(const std::vector<double>& values, double f1score) {
+double ztd1f2(const std::vector<double>& values, double f1score) {
     gradeAmount2++;
     double g = 1. + (9. * values[1]);
     double h = 1. - sqrt(f1score / g);
     return g * h;
 }
 
-std::vector<Solution> generateRandom(int populationSize, int dimensions) {
+
+
+
+std::vector<Solution> generateRandom(int populationSize, int dimensions, std::vector<double (*)(const std::vector<double>& values, double parameter)>& objectives) {
     std::vector<Solution> population;
     for (int i = 0; i < populationSize; i++) {
         Solution sol;
@@ -67,8 +70,8 @@ std::vector<Solution> generateRandom(int populationSize, int dimensions) {
             // sol.values.push_back(0);
         }
 
-        sol.objectiveScores.push_back(getGrade1(sol.values, 0.));
-        sol.objectiveScores.push_back(getGrade2(sol.values, sol.objectiveScores[0]));
+        sol.objectiveScores.push_back(objectives[0](sol.values, 0.));
+        sol.objectiveScores.push_back(objectives[1](sol.values, sol.objectiveScores[0]));
 
         population.push_back(sol);
     }
@@ -350,7 +353,7 @@ std::vector<Solution> tournamentSelection(const std::vector<Solution>& solutions
     return winners;
 }
 
-std::vector<Solution> recombine(const std::vector<Solution>& populationMating, int offspringAmount) {
+std::vector<Solution> recombine(const std::vector<Solution>& populationMating, int offspringAmount, std::vector<double (*)(const std::vector<double>& values, double parameter)>& objectives) {
     std::vector<Solution> offspring;
     int dimensions = populationMating[0].values.size();
     while (offspring.size() < offspringAmount) {
@@ -418,8 +421,8 @@ std::vector<Solution> recombine(const std::vector<Solution>& populationMating, i
 
         }
 
-        child.objectiveScores.push_back(getGrade1(child.values, 0.));
-        child.objectiveScores.push_back(getGrade2(child.values, child.objectiveScores[0]));
+        child.objectiveScores.push_back(objectives[0](child.values, 0.));
+        child.objectiveScores.push_back(objectives[1](child.values, child.objectiveScores[0]));
         offspring.push_back(child);
 
     }
@@ -447,7 +450,7 @@ std::vector<Solution> Spea2(const std::vector<Solution>& startPopulation, std::v
     constexpr size_t budget = 20000;
     std::vector<Solution> population = startPopulation;
     std::vector<Solution> archive;
-    std::vector<Solution> lastArchive = generateRandom(population.size(), population[0].values.size());
+    std::vector<Solution> lastArchive = generateRandom(population.size(), population[0].values.size(),objectives);
     //std::vector<Solution> populationNonDominated = kungPareto(population, objectives);
 
 
@@ -543,7 +546,7 @@ std::vector<Solution> Spea2(const std::vector<Solution>& startPopulation, std::v
         std::vector<Solution> populationMating = tournamentSelection(archive, population.size());
 
         //Recombine, create offspring
-        std::vector<Solution> offspring = recombine(populationMating, population.size());
+        std::vector<Solution> offspring = recombine(populationMating, population.size(), objectives);
 
         //Mutate created offspring
         mutate(offspring, 1);
@@ -575,19 +578,54 @@ std::vector<Solution> Spea2(const std::vector<Solution>& startPopulation, std::v
     return archive;
 }
 
+void setupObjectives(int zdt,std::vector<double (*)(const std::vector<double>& values, double parameter)>& objectives){
+    objectives.clear();
+    switch (zdt)
+    {
+        case 1:{
+            objectives.push_back(&ztd1f1);
+            objectives.push_back(&ztd1f2);
+            break;
+        }
+        case 2:{
+            // objectives.push_back(&ztd2f1);
+            // objectives.push_back(&ztd2f2);
+            break;
+        }
+        case 3:{
+            // objectives.push_back(&ztd3f1);
+            // objectives.push_back(&ztd3f2);
+            break;
+        }
+        case 4:{
+            // objectives.push_back(&ztd4f1);
+            // objectives.push_back(&ztd4f2);
+            break;
+        }
+        case 5:{
+            // objectives.push_back(&ztd5f1);
+            // objectives.push_back(&ztd5f2);
+            break;
+        }
+        case 6:{
+            // objectives.push_back(&ztd6f1);
+            // objectives.push_back(&ztd6f2);
+            break;
+        }
+    }
+}
+
 
 int main() {
     int num = 30; //number of solutions
     int n = 2; //dimensions
 
-
     //initalize objectives
     std::vector<double (*)(const std::vector<double>& values, double parameter)> objectives;
-    objectives.push_back(&getGrade1);
-    objectives.push_back(&getGrade2);
+    setupObjectives(1,objectives);
 
     //generating solutions
-    std::vector<Solution> population = generateRandom(num, n);
+    std::vector<Solution> population = generateRandom(num, n, objectives);
 
     std::vector<Solution> results = Spea2(population, objectives);
 
