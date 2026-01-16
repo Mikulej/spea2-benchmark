@@ -44,16 +44,30 @@ std::mt19937 gen(std::time({}));
 std::uniform_real_distribution<> dis(0.0, 1.0);
 
 //ZDT1 f1
-double ztd1f1(const std::vector<double>& values, double parameter) {
+double zdt1f1(const std::vector<double>& values, double parameter) {
     gradeAmount1++;
     return values[0];
 }
 
 //ZDT1 f2
-double ztd1f2(const std::vector<double>& values, double f1score) {
+double zdt1f2(const std::vector<double>& values, double f1score) {
     gradeAmount2++;
     double g = 1. + (9. * values[1]);
     double h = 1. - sqrt(f1score / g);
+    return g * h;
+}
+
+//ZDT2 f1
+double zdt2f1(const std::vector<double>& values, double parameter) {
+    gradeAmount1++;
+    return values[0];
+}
+
+//ZDT2 f2
+double zdt2f2(const std::vector<double>& values, double f1score) {
+    gradeAmount2++;
+    double g = 1. + (9. * values[1]);
+    double h = 1. - ((f1score / g)*(f1score / g));
     return g * h;
 }
 
@@ -583,33 +597,33 @@ void setupObjectives(int zdt,std::vector<double (*)(const std::vector<double>& v
     switch (zdt)
     {
         case 1:{
-            objectives.push_back(&ztd1f1);
-            objectives.push_back(&ztd1f2);
+            objectives.push_back(&zdt1f1);
+            objectives.push_back(&zdt1f2);
             break;
         }
         case 2:{
-            // objectives.push_back(&ztd2f1);
-            // objectives.push_back(&ztd2f2);
+            objectives.push_back(&zdt2f1);
+            objectives.push_back(&zdt2f2);
             break;
         }
         case 3:{
-            // objectives.push_back(&ztd3f1);
-            // objectives.push_back(&ztd3f2);
+            // objectives.push_back(&zdt3f1);
+            // objectives.push_back(&zdt3f2);
             break;
         }
         case 4:{
-            // objectives.push_back(&ztd4f1);
-            // objectives.push_back(&ztd4f2);
+            // objectives.push_back(&zdt4f1);
+            // objectives.push_back(&zdt4f2);
             break;
         }
         case 5:{
-            // objectives.push_back(&ztd5f1);
-            // objectives.push_back(&ztd5f2);
+            // objectives.push_back(&zdt5f1);
+            // objectives.push_back(&zdt5f2);
             break;
         }
         case 6:{
-            // objectives.push_back(&ztd6f1);
-            // objectives.push_back(&ztd6f2);
+            // objectives.push_back(&zdt6f1);
+            // objectives.push_back(&zdt6f2);
             break;
         }
     }
@@ -617,12 +631,12 @@ void setupObjectives(int zdt,std::vector<double (*)(const std::vector<double>& v
 
 
 int main() {
-    int num = 30; //number of solutions
+    int num = 5; //number of solutions
     int n = 2; //dimensions
 
     //initalize objectives
     std::vector<double (*)(const std::vector<double>& values, double parameter)> objectives;
-    setupObjectives(1,objectives);
+    setupObjectives(2,objectives);
 
     //generating solutions
     std::vector<Solution> population = generateRandom(num, n, objectives);
