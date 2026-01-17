@@ -38,6 +38,7 @@ struct Solution {
 
 };
 
+static int mutationAmount = 1;
 static size_t gradeAmount1 = 0;
 static size_t gradeAmount2 = 0;
 static size_t generateId = 0;
@@ -657,7 +658,7 @@ std::vector<Solution> Spea2(const std::vector<Solution>& startPopulation, std::v
         std::vector<Solution> offspring = recombine(populationMating, population.size(), objectives);
 
         //Mutate created offspring
-        mutate(offspring, 1, zdt);
+        mutate(offspring, mutationAmount, zdt);
 
         //Evaluate offspring
         Evaluate(offspring, populationPlusArchive, objectives);
@@ -731,6 +732,7 @@ void setupObjectives(int zdt,std::vector<double (*)(const std::vector<double>& v
 int main() {
     int num = 10; //number of solutions
     int n = 2; //dimensions
+    int mutationAmount = sqrt(n); // 1 mutation means -> 1 random selected index shifted by randomOffset normalDistribution(0,0.3)
     int zdt = 4;
 
     //initalize objectives
