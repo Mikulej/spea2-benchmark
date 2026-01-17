@@ -44,6 +44,7 @@ static size_t generateId = 0;
 
 std::mt19937 gen(std::time({}));
 std::uniform_real_distribution<> dis(0.0, 1.0);
+std::uniform_real_distribution<> disZdt4(-5.0, 5.0);
 
 double zdt1f1(const std::vector<double>& values, double parameter) {
     gradeAmount1++;
@@ -110,19 +111,37 @@ double zdt6f2(const std::vector<double>& values, double f1score) {
 
 std::vector<Solution> generateRandom(int populationSize, int dimensions, std::vector<double (*)(const std::vector<double>& values, double parameter)>& objectives) {
     std::vector<Solution> population;
-    for (int i = 0; i < populationSize; i++) {
-        Solution sol;
-        sol.id = generateId++;
-        for (int j = 0; j < dimensions; j++) {
+
+    if(objectives[0] == &zdt4f1 && objectives[1] == &zdt4f2){//ZDT 4
+        for (int i = 0; i < populationSize; i++) {
+            Solution sol;
+            sol.id = generateId++;
             sol.values.push_back(dis(gen));
-            // sol.values.push_back(0);
+            for (int j = 1; j < dimensions; j++) {
+                sol.values.push_back(disZdt4(gen));
+            }
+
+            sol.objectiveScores.push_back(objectives[0](sol.values, 0.));
+            sol.objectiveScores.push_back(objectives[1](sol.values, sol.objectiveScores[0]));
+
+            population.push_back(sol);
         }
-
-        sol.objectiveScores.push_back(objectives[0](sol.values, 0.));
-        sol.objectiveScores.push_back(objectives[1](sol.values, sol.objectiveScores[0]));
-
-        population.push_back(sol);
     }
+    else{ //ZDT 1,2,3,6
+        for (int i = 0; i < populationSize; i++) {
+            Solution sol;
+            sol.id = generateId++;
+            for (int j = 0; j < dimensions; j++) {
+                sol.values.push_back(dis(gen));
+            }
+
+            sol.objectiveScores.push_back(objectives[0](sol.values, 0.));
+            sol.objectiveScores.push_back(objectives[1](sol.values, sol.objectiveScores[0]));
+
+            population.push_back(sol);
+        }
+    }
+    
     return population;
 }
 
@@ -667,7 +686,7 @@ int main() {
 
     //initalize objectives
     std::vector<double (*)(const std::vector<double>& values, double parameter)> objectives;
-    setupObjectives(6,objectives);
+    setupObjectives(4,objectives);
 
     //generating solutions
     std::vector<Solution> population = generateRandom(num, n, objectives);
