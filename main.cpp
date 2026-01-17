@@ -109,10 +109,10 @@ double zdt6f2(const std::vector<double>& values, double f1score) {
 
 
 
-std::vector<Solution> generateRandom(int populationSize, int dimensions, std::vector<double (*)(const std::vector<double>& values, double parameter)>& objectives) {
+std::vector<Solution> generateRandom(int populationSize, int dimensions, std::vector<double (*)(const std::vector<double>& values, double parameter)>& objectives, int zdt) {
     std::vector<Solution> population;
 
-    if(objectives[0] == &zdt4f1 && objectives[1] == &zdt4f2){//ZDT 4
+    if(zdt == 4){//ZDT 4
         for (int i = 0; i < populationSize; i++) {
             Solution sol;
             sol.id = generateId++;
@@ -496,28 +496,54 @@ std::vector<Solution> recombine(const std::vector<Solution>& populationMating, i
     return offspring;
 }
 
-void mutate(std::vector<Solution>& solutions, int mutationAmount) {
+void mutate(std::vector<Solution>& solutions, int mutationAmount, int zdt) {
     std::normal_distribution<> randomOffset(0., 0.3);
     // std::uniform_real_distribution randomOffset(-0.3,0.3);
     int dimensions = solutions[0].values.size();
-    for (Solution& s : solutions) {
-        std::vector<double> nonMutated = s.values;
-        for (int i = 0; i < mutationAmount; i++) {
-            int mutateIndex = std::uniform_int_distribution<>(0, dimensions - 1)(gen);
-            double original = nonMutated[mutateIndex];
-            nonMutated.erase(nonMutated.begin() + mutateIndex);
+    if(zdt == 4){
+        std::normal_distribution<> randomOffsetZdt4(0., 1.5);
+        for (Solution& s : solutions) {
+            std::vector<double> nonMutated = s.values;
 
-            double mutated = std::clamp<double>(original + randomOffset(gen), 0., 1.);
-            s.values[mutateIndex] = mutated;
+            for (int i = 0; i < mutationAmount; i++) {
+                int mutateIndex = std::uniform_int_distribution<>(0, dimensions - 1)(gen);
+                if(mutateIndex == 0){ //mutate at i = 0
+                    double original = nonMutated[mutateIndex];
+                    nonMutated.erase(nonMutated.begin() + mutateIndex);
+
+                    double mutated = std::clamp<double>(original + randomOffset(gen), 0., 1.);
+                    s.values[mutateIndex] = mutated;
+                }
+                else{ //mutate for i = 1,2,3,...
+                    double original = nonMutated[mutateIndex];
+                    nonMutated.erase(nonMutated.begin() + mutateIndex);
+
+                    double mutated = std::clamp<double>(original + randomOffsetZdt4(gen), -5., 5.);
+                    s.values[mutateIndex] = mutated;
+                }           
+            }
         }
     }
+    else{
+        for (Solution& s : solutions) {
+            std::vector<double> nonMutated = s.values;
+            for (int i = 0; i < mutationAmount; i++) {
+                int mutateIndex = std::uniform_int_distribution<>(0, dimensions - 1)(gen);
+                double original = nonMutated[mutateIndex];
+                nonMutated.erase(nonMutated.begin() + mutateIndex);
+
+                double mutated = std::clamp<double>(original + randomOffset(gen), 0., 1.);
+                s.values[mutateIndex] = mutated;
+            }
+        }
+    } 
 }
 
-std::vector<Solution> Spea2(const std::vector<Solution>& startPopulation, std::vector<double (*)(const std::vector<double>& values, double parameter)>& objectives) {
+std::vector<Solution> Spea2(const std::vector<Solution>& startPopulation, std::vector<double (*)(const std::vector<double>& values, double parameter)>& objectives, int zdt) {
     constexpr size_t budget = 20000;
     std::vector<Solution> population = startPopulation;
     std::vector<Solution> archive;
-    std::vector<Solution> lastArchive = generateRandom(population.size(), population[0].values.size(),objectives);
+    std::vector<Solution> lastArchive = generateRandom(population.size(), population[0].values.size(),objectives, zdt);
     //std::vector<Solution> populationNonDominated = kungPareto(population, objectives);
 
 
@@ -616,7 +642,7 @@ std::vector<Solution> Spea2(const std::vector<Solution>& startPopulation, std::v
         std::vector<Solution> offspring = recombine(populationMating, population.size(), objectives);
 
         //Mutate created offspring
-        mutate(offspring, 1);
+        mutate(offspring, 1, zdt);
 
         //Evaluate offspring
         Evaluate(offspring, populationPlusArchive, objectives);
@@ -683,15 +709,16 @@ void setupObjectives(int zdt,std::vector<double (*)(const std::vector<double>& v
 int main() {
     int num = 5; //number of solutions
     int n = 2; //dimensions
+    int zdt = 4;
 
     //initalize objectives
     std::vector<double (*)(const std::vector<double>& values, double parameter)> objectives;
-    setupObjectives(4,objectives);
+    setupObjectives(zdt,objectives);
 
     //generating solutions
-    std::vector<Solution> population = generateRandom(num, n, objectives);
+    std::vector<Solution> population = generateRandom(num, n, objectives, zdt);
 
-    std::vector<Solution> results = Spea2(population, objectives);
+    std::vector<Solution> results = Spea2(population, objectives, zdt);
 
     int a = 2;
 
