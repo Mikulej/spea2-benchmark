@@ -617,12 +617,6 @@ std::vector<Solution> Spea2(const std::vector<Solution>& startPopulation, std::v
                     alreadyExists = true;
                     break;
                 }
-
-                // if (std::abs(existing.objectiveScores[0] - candidate.objectiveScores[0]) < 1e-9 &&
-                //     std::abs(existing.objectiveScores[1] - candidate.objectiveScores[1]) < 1e-9) {
-                //     alreadyExists = true;
-                //     break;
-                // }
             }
 
             if (!alreadyExists) {
@@ -636,12 +630,17 @@ std::vector<Solution> Spea2(const std::vector<Solution>& startPopulation, std::v
             archive.erase(archive.begin() + index);
         }
 
-        if (resultsFile.is_open()) {
-            for (const auto& s : archive) {
-                // Zapis: numer_iteracji, f1, f2
-                resultsFile << currentIteration << "," 
-                            << s.objectiveScores[0] << "," 
-                            << s.objectiveScores[1] << "\n";
+        if((currentIteration == 20) || (currentIteration == 50) || (currentIteration == 100) || (currentIteration == 500)){
+            if (resultsFile.is_open()) {
+                for (const auto& s : archive) {
+                    // Zapis: numer_iteracji, f1, f2
+                    resultsFile << currentIteration << "," 
+                                << s.objectiveScores[0] << "," 
+                                << s.objectiveScores[1] << "\n";
+                }
+            }
+            if(currentIteration == 500) {//End prematurely
+                return archive;
             }
         }
 
@@ -742,49 +741,6 @@ int main() {
     std::vector<Solution> population = generateRandom(num, n, objectives, zdt);
 
     std::vector<Solution> results = Spea2(population, objectives, zdt);
-
-    int a = 2;
-
-
-    // std::vector<Solution> kungResult = kungPareto(population,objectives);
-    // std::ofstream file;
-    // file.open("non-dominated.txt");
-    // std::cout <<"Non-dominated IDs:" <<std::endl;
-    // for(int i = 0; i < kungResult.size(); i++){
-    //     std::cout << kungResult[i].id << " ";
-    //     for(double value : kungResult[i].values){
-    //         file << value << " ";
-    //     }
-    //     file << std::endl;
-
-    // }
-    // file.close();
-    // std::cout << std::endl;
-
-    // //get dominated solutions
-    // std::vector<Solution> dominated = getDominated(population,kungResult);
-    // file.open("dominated.txt");
-    // std::cout <<"Dominated IDs:" <<std::endl;
-    // for(Solution s : dominated){
-    //     std::cout << s.id << " ";
-    //     for(double value : s.values){
-    //         file << value << " ";
-    //     }
-    //     file << std::endl;
-    // }
-    // file.close();
-
-    // std::ofstream outFile("results.csv");
-    // if (outFile.is_open()) {
-    //     outFile << "f1,f2\n"; 
-    //     for (const auto& s : results) {
-    //         outFile << s.objectiveScores[0] << "," << s.objectiveScores[1] << "\n";
-    //     }
-    //     outFile.close();
-    //     std::cout << "Saved results in results.csv" << std::endl;
-    // } else {
-    //     std::cerr << "Couldn't open a file" << std::endl;
-    // }
 
     return 0;
 }
