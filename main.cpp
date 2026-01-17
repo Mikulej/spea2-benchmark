@@ -636,12 +636,17 @@ std::vector<Solution> Spea2(const std::vector<Solution>& startPopulation, std::v
             archive.erase(archive.begin() + index);
         }
 
-        if (resultsFile.is_open()) {
-            for (const auto& s : archive) {
-                // Zapis: numer_iteracji, f1, f2
-                resultsFile << currentIteration << "," 
-                            << s.objectiveScores[0] << "," 
-                            << s.objectiveScores[1] << "\n";
+        if((currentIteration == 20) || (currentIteration == 50) || (currentIteration == 100) || (currentIteration == 500)){
+            if (resultsFile.is_open()) {
+                for (const auto& s : archive) {
+                    // Zapis: numer_iteracji, f1, f2
+                    resultsFile << currentIteration << "," 
+                                << s.objectiveScores[0] << "," 
+                                << s.objectiveScores[1] << "\n";
+                }
+            }
+            if(currentIteration == 500) {//End prematurely
+                return archive;
             }
         }
 
