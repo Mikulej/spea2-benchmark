@@ -10,8 +10,10 @@
 #include <sstream>
 #include <cfloat>
 
+# define PI 3.14159265358979323846 
+
 struct Solution {
-    int id;
+    size_t id;
     std::vector<double> values;
     std::vector<double> objectiveScores;//[0] = f1(values), [1] = f2(values), ...
 
@@ -36,20 +38,18 @@ struct Solution {
 
 };
 
-static int gradeAmount1 = 0;
-static int gradeAmount2 = 0;
-static int generateId = 0;
+static size_t gradeAmount1 = 0;
+static size_t gradeAmount2 = 0;
+static size_t generateId = 0;
 
 std::mt19937 gen(std::time({}));
 std::uniform_real_distribution<> dis(0.0, 1.0);
 
-//ZDT1 f1
 double zdt1f1(const std::vector<double>& values, double parameter) {
     gradeAmount1++;
     return values[0];
 }
 
-//ZDT1 f2
 double zdt1f2(const std::vector<double>& values, double f1score) {
     gradeAmount2++;
     double g = 1. + (9. * values[1]);
@@ -57,16 +57,50 @@ double zdt1f2(const std::vector<double>& values, double f1score) {
     return g * h;
 }
 
-//ZDT2 f1
 double zdt2f1(const std::vector<double>& values, double parameter) {
     gradeAmount1++;
     return values[0];
 }
 
-//ZDT2 f2
 double zdt2f2(const std::vector<double>& values, double f1score) {
     gradeAmount2++;
     double g = 1. + (9. * values[1]);
+    double h = 1. - ((f1score / g)*(f1score / g));
+    return g * h;
+}
+
+double zdt3f1(const std::vector<double>& values, double parameter) {
+    gradeAmount1++;
+    return values[0];
+}
+
+double zdt3f2(const std::vector<double>& values, double f1score) {
+    gradeAmount2++;
+    double g = 1. + (9. * values[1]);
+    double h = 1. - sqrt(f1score/g) - ((f1score/g)*sin(10.*PI*f1score));
+    return g * h;
+}
+
+double zdt4f1(const std::vector<double>& values, double parameter) {
+    gradeAmount1++;
+    return values[0];
+}
+
+double zdt4f2(const std::vector<double>& values, double f1score) {
+    gradeAmount2++;
+    double g = 11. + ((values[1]*values[1])-(10.*cos(4.*PI*values[1])));
+    double h = 1. - sqrt(f1score / g);
+    return g * h;
+}
+
+double zdt6f1(const std::vector<double>& values, double parameter) {
+    gradeAmount1++;
+    return 1. - exp(-4.*values[0])*pow(sin(6.*PI*values[0]),6);
+}
+
+double zdt6f2(const std::vector<double>& values, double f1score) {
+    gradeAmount2++;
+    double g = 1. + (9. * pow(values[1],0.25));
     double h = 1. - ((f1score / g)*(f1score / g));
     return g * h;
 }
@@ -593,6 +627,8 @@ std::vector<Solution> Spea2(const std::vector<Solution>& startPopulation, std::v
 }
 
 void setupObjectives(int zdt,std::vector<double (*)(const std::vector<double>& values, double parameter)>& objectives){
+    gradeAmount1 = 0;
+    gradeAmount2 = 0;
     objectives.clear();
     switch (zdt)
     {
@@ -607,23 +643,18 @@ void setupObjectives(int zdt,std::vector<double (*)(const std::vector<double>& v
             break;
         }
         case 3:{
-            // objectives.push_back(&zdt3f1);
-            // objectives.push_back(&zdt3f2);
+            objectives.push_back(&zdt3f1);
+            objectives.push_back(&zdt3f2);
             break;
         }
         case 4:{
-            // objectives.push_back(&zdt4f1);
-            // objectives.push_back(&zdt4f2);
-            break;
-        }
-        case 5:{
-            // objectives.push_back(&zdt5f1);
-            // objectives.push_back(&zdt5f2);
+            objectives.push_back(&zdt4f1);
+            objectives.push_back(&zdt4f2);
             break;
         }
         case 6:{
-            // objectives.push_back(&zdt6f1);
-            // objectives.push_back(&zdt6f2);
+            objectives.push_back(&zdt6f1);
+            objectives.push_back(&zdt6f2);
             break;
         }
     }
@@ -636,7 +667,7 @@ int main() {
 
     //initalize objectives
     std::vector<double (*)(const std::vector<double>& values, double parameter)> objectives;
-    setupObjectives(2,objectives);
+    setupObjectives(6,objectives);
 
     //generating solutions
     std::vector<Solution> population = generateRandom(num, n, objectives);
