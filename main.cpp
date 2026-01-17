@@ -540,7 +540,6 @@ void mutate(std::vector<Solution>& solutions, int mutationAmount, int zdt) {
 }
 
 std::vector<Solution> Spea2(const std::vector<Solution>& startPopulation, std::vector<double (*)(const std::vector<double>& values, double parameter)>& objectives, int zdt) {
-    constexpr size_t budget = 20000;
     std::vector<Solution> population = startPopulation;
     std::vector<Solution> archive;
     std::vector<Solution> lastArchive = generateRandom(population.size(), population[0].values.size(),objectives, zdt);
@@ -554,7 +553,8 @@ std::vector<Solution> Spea2(const std::vector<Solution>& startPopulation, std::v
 
     int currentIteration = 0;
 
-    while ((gradeAmount1 < budget) && (gradeAmount2 < budget)) {
+    while (true) {
+        std::cout << currentIteration << std::endl;
         std::vector<Solution> populationNonDominated = kungPareto(population, objectives);
 
         //Copy non-dominated memebers of Population to Archive
@@ -679,8 +679,8 @@ std::vector<Solution> Spea2(const std::vector<Solution>& startPopulation, std::v
         //Save archive as lastArchive
         lastArchive = archive;
 
-        std::cout << "Budget 1: " << gradeAmount1 << std::endl;
-        std::cout << "Budget 2: " << gradeAmount2 << std::endl;
+        // std::cout << "Budget 1: " << gradeAmount1 << std::endl;
+        // std::cout << "Budget 2: " << gradeAmount2 << std::endl;
 
         currentIteration++;
     }
@@ -729,7 +729,7 @@ void setupObjectives(int zdt,std::vector<double (*)(const std::vector<double>& v
 
 
 int main() {
-    int num = 5; //number of solutions
+    int num = 10; //number of solutions
     int n = 2; //dimensions
     int zdt = 4;
 
