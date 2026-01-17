@@ -546,6 +546,13 @@ std::vector<Solution> Spea2(const std::vector<Solution>& startPopulation, std::v
     std::vector<Solution> lastArchive = generateRandom(population.size(), population[0].values.size(),objectives, zdt);
     //std::vector<Solution> populationNonDominated = kungPareto(population, objectives);
 
+    //Open results file
+    std::ofstream resultsFile("results.csv");
+    if(resultsFile.is_open()) {
+        resultsFile << "iter,f1,f2\n";
+    }
+
+    int currentIteration = 0;
 
     while ((gradeAmount1 < budget) && (gradeAmount2 < budget)) {
         std::vector<Solution> populationNonDominated = kungPareto(population, objectives);
@@ -629,6 +636,15 @@ std::vector<Solution> Spea2(const std::vector<Solution>& startPopulation, std::v
             archive.erase(archive.begin() + index);
         }
 
+        if (resultsFile.is_open()) {
+            for (const auto& s : archive) {
+                // Zapis: numer_iteracji, f1, f2
+                resultsFile << currentIteration << "," 
+                            << s.objectiveScores[0] << "," 
+                            << s.objectiveScores[1] << "\n";
+            }
+        }
+
         //Update Population + Archive vector, after changing archive (no need to evaluate, it was already done - results are copied)
         populationPlusArchive.clear();
         populationPlusArchive.reserve(population.size() + archive.size()); // preallocate memory
@@ -666,6 +682,13 @@ std::vector<Solution> Spea2(const std::vector<Solution>& startPopulation, std::v
 
         std::cout << "Budget 1: " << gradeAmount1 << std::endl;
         std::cout << "Budget 2: " << gradeAmount2 << std::endl;
+
+        currentIteration++;
+    }
+
+    if(resultsFile.is_open()) {
+        resultsFile.close();
+        std::cout << "Saved data in results.csv" << std::endl;
     }
 
     return archive;
@@ -751,14 +774,17 @@ int main() {
     // }
     // file.close();
 
-    std::ofstream outFile("results.txt");
-    if (outFile.is_open()) {
-        for (const auto& s : results) {
-
-            outFile << s.objectiveScores[0] << " " << s.objectiveScores[1] << "\n";
-        }
-        outFile.close();
-    }
+    // std::ofstream outFile("results.csv");
+    // if (outFile.is_open()) {
+    //     outFile << "f1,f2\n"; 
+    //     for (const auto& s : results) {
+    //         outFile << s.objectiveScores[0] << "," << s.objectiveScores[1] << "\n";
+    //     }
+    //     outFile.close();
+    //     std::cout << "Saved results in results.csv" << std::endl;
+    // } else {
+    //     std::cerr << "Couldn't open a file" << std::endl;
+    // }
 
     return 0;
 }
