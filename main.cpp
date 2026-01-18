@@ -280,6 +280,7 @@ double getDistance(const Solution& a, const Solution& b) {
 
 size_t archiveTruncationProcedure(const std::vector<Solution>& archive, std::vector<double (*)(const std::vector<double>& values, double parameter)>& objectives) {
     std::vector<std::vector<Solution>> sortedArchive;
+    sortedArchive.reserve(archive.size());
     for (size_t i = 0; i < archive.size(); i++) {
         std::vector<Solution> archiveNoI = archive;
         archiveNoI.erase(archiveNoI.begin() + i);
@@ -594,7 +595,7 @@ std::vector<Solution> Spea2(const std::vector<Solution>& startPopulation, std::v
         for (size_t i = 0; i < archive.size(); i++) {
             bool unique = true;
             for (size_t j = i + 1; j < archive.size(); j++) {
-                //Compre solution by the objective to remove duplicates
+                //Compare solution by the objective to remove duplicates
                 if (archive[i].id == archive[j].id) {
                     unique = false;
                     break;
@@ -623,7 +624,7 @@ std::vector<Solution> Spea2(const std::vector<Solution>& startPopulation, std::v
         //Sort lastArchive based on F(i)
         std::sort(lastArchive.begin(), lastArchive.end(), [](const Solution& a, const Solution& b) {
             return a.getFitness() < b.getFitness();
-            });
+        });
 
         //Make sure Archive has exactly the same size as Population 
         size_t fillUpArchiveIndex = 0;
@@ -649,11 +650,52 @@ std::vector<Solution> Spea2(const std::vector<Solution>& startPopulation, std::v
                 archive.push_back(candidate);
             }
 
-        }
+        }      
         while (archive.size() > population.size())//archive truncation prodecure (remove smallest distances)
         {
-            size_t index = archiveTruncationProcedure(archive, objectives);
-            archive.erase(archive.begin() + index);
+            std::vector<Solution> duplicates;
+            for(size_t i = 0; i < archive.size(); i++){
+                for(size_t j = i + 1; j < archive.size(); j++){
+                    if((archive[i].objectiveScores[0] == archive[j].objectiveScores[0])&&
+                    (archive[i].objectiveScores[1] == archive[j].objectiveScores[1])){
+                        duplicates.push_back(archive[i]);
+                        break;
+                    }
+                }
+            }
+
+            // for(size_t i = 0; i < duplicates.size(); i++){
+            //     int dupId = duplicates[i].id;
+            //     int dupCount = std::count_if(duplicates.begin(), duplicates.end(), [dupId](const Solution& s) {
+            //         return (s.id == dupId);
+            //     });
+            //     std::cout << "i: " << i << " dupCount: " << dupCount << std::endl;
+            // }
+
+            if(duplicates.size() > 0){
+                // std::cout << "del duplicate" << std::endl;
+                size_t duplicatesIndex = std::uniform_int_distribution<>(0, duplicates.size() - 1)(gen);
+                //get id of duplicate
+                size_t duplicateId = duplicates[duplicatesIndex].id;
+                
+                //find solution with duplicateId in archive and delete it
+                auto iter = std::find_if(archive.begin(), archive.end(), [duplicateId](const Solution& s) {
+                    return s.id == duplicateId;
+                });
+                if (iter != archive.end()) {
+                    archive.erase(iter);
+                    continue;
+                }
+                else{
+                    std::cout << "ERROR: Couldn't find duplicateId in archive" << std::endl;
+                    return std::vector<Solution>();
+                }
+            }
+            else{
+                size_t index = archiveTruncationProcedure(archive, objectives);
+                archive.erase(archive.begin() + index);
+            }
+            
         }
 
         if((currentIteration == 20) || (currentIteration == 50) || (currentIteration == 100) || (currentIteration == 500)){
@@ -707,7 +749,7 @@ std::vector<Solution> Spea2(const std::vector<Solution>& startPopulation, std::v
 
         // std::cout << "Budget 1: " << gradeAmount1 << std::endl;
         // std::cout << "Budget 2: " << gradeAmount2 << std::endl;
-
+        // std::cout << "id:" << generateId << std::endl;
         currentIteration++;
     }
 
@@ -755,10 +797,10 @@ void setupObjectives(int zdt,std::vector<double (*)(const std::vector<double>& v
 
 
 int main() {
-    int num = 10; //number of solutions
-    int n = 2; //dimensions
+    int num = 100; //number of solutions
+    int n = 50; //dimensions
     int mutationAmount = sqrt(n); // 1 mutation means -> 1 random selected index shifted by randomOffset normalDistribution(0,0.3)
-    int zdt = 4;
+    int zdt = 1;
 
     //initalize objectives
     std::vector<double (*)(const std::vector<double>& values, double parameter)> objectives;
