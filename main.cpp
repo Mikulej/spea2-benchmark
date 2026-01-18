@@ -580,7 +580,7 @@ std::vector<Solution> Spea2(const std::vector<Solution>& startPopulation, std::v
     int currentIteration = 0;
 
     while (true) {
-        std::cout << currentIteration << std::endl;
+        //std::cout << currentIteration << std::endl;
         std::vector<Solution> populationNonDominated = kungPareto(population, objectives);
 
         //Copy non-dominated memebers of Population to Archive
@@ -595,6 +595,7 @@ std::vector<Solution> Spea2(const std::vector<Solution>& startPopulation, std::v
             bool unique = true;
             for (size_t j = i + 1; j < archive.size(); j++) {
                 //Compre solution by the objective to remove duplicates
+                //archive[i].objectiveScores[0] - archive[j].objectiveScores[0] < 1e-9 && archive[i].objectiveScores[1] - archive[j].objectiveScores[1] < 1e-9
                 if (archive[i].id == archive[j].id) {
                     unique = false;
                     break;
@@ -627,6 +628,7 @@ std::vector<Solution> Spea2(const std::vector<Solution>& startPopulation, std::v
 
         //Make sure Archive has exactly the same size as Population 
         size_t fillUpArchiveIndex = 0;
+        
         while (archive.size() < population.size()) //fillup archive using lastArchive
         {
             if (fillUpArchiveIndex == lastArchive.size()) {
@@ -643,6 +645,12 @@ std::vector<Solution> Spea2(const std::vector<Solution>& startPopulation, std::v
                     alreadyExists = true;
                     break;
                 }
+
+                // if ((existing.objectiveScores[0] == candidate.objectiveScores[0]) && (existing.objectiveScores[1] == candidate.objectiveScores[1])){
+                //     alreadyExists = true;
+                //     break;
+                // }
+
             }
 
             if (!alreadyExists) {
@@ -650,6 +658,11 @@ std::vector<Solution> Spea2(const std::vector<Solution>& startPopulation, std::v
             }
 
         }
+
+        if (currentIteration % 10 == 0) { // Wypisuj co 10 iteracji, żeby nie zalać konsoli
+            std::cout << "It: " << currentIteration  << ", pop = " << population.size() << ", archive = " << archive.size() << std::endl;
+}
+
         while (archive.size() > population.size())//archive truncation prodecure (remove smallest distances)
         {
             size_t index = archiveTruncationProcedure(archive, objectives);
@@ -660,8 +673,8 @@ std::vector<Solution> Spea2(const std::vector<Solution>& startPopulation, std::v
             if (resultsFile.is_open()) {
                 for (const auto& s : archive) {
                     // Zapis: numer_iteracji, f1, f2
-                    resultsFile << currentIteration << "," 
-                                << s.objectiveScores[0] << "," 
+                    resultsFile << currentIteration << ";" 
+                                << s.objectiveScores[0] << ";" 
                                 << s.objectiveScores[1] << "\n";
                 }
             }
@@ -755,10 +768,10 @@ void setupObjectives(int zdt,std::vector<double (*)(const std::vector<double>& v
 
 
 int main() {
-    int num = 10; //number of solutions
-    int n = 2; //dimensions
+    int num = 100; //number of solutions
+    int n = 50; //dimensions
     int mutationAmount = sqrt(n); // 1 mutation means -> 1 random selected index shifted by randomOffset normalDistribution(0,0.3)
-    int zdt = 4;
+    int zdt = 3;
 
     //initalize objectives
     std::vector<double (*)(const std::vector<double>& values, double parameter)> objectives;
@@ -768,6 +781,5 @@ int main() {
     std::vector<Solution> population = generateRandom(num, n, objectives, zdt);
 
     std::vector<Solution> results = Spea2(population, objectives, zdt);
-
     return 0;
 }
