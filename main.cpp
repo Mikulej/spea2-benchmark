@@ -54,7 +54,12 @@ double zdt1f1(const std::vector<double>& values, double parameter) {
 
 double zdt1f2(const std::vector<double>& values, double f1score) {
     gradeAmount2++;
-    double g = 1. + (9. * values[1]);
+    int m = values.size();
+    double sum = 0;
+    for(int i = 1; i < m; i++){
+        sum += values[i];
+    }
+    double g = 1. + (9. * sum / (double)(m - 1));
     double h = 1. - sqrt(f1score / g);
     return g * h;
 }
@@ -66,7 +71,12 @@ double zdt2f1(const std::vector<double>& values, double parameter) {
 
 double zdt2f2(const std::vector<double>& values, double f1score) {
     gradeAmount2++;
-    double g = 1. + (9. * values[1]);
+    int m = values.size();
+    double sum = 0;
+    for(int i = 1; i < m; i++){
+        sum += values[i];
+    }
+    double g = 1. + (9. * sum / (double)(m - 1));
     double h = 1. - ((f1score / g)*(f1score / g));
     return g * h;
 }
@@ -78,7 +88,12 @@ double zdt3f1(const std::vector<double>& values, double parameter) {
 
 double zdt3f2(const std::vector<double>& values, double f1score) {
     gradeAmount2++;
-    double g = 1. + (9. * values[1]);
+    int m = values.size();
+    double sum = 0;
+    for(int i = 1; i < m; i++){
+        sum += values[i];
+    }
+    double g = 1. + (9. * sum / (double)(m - 1));
     double h = 1. - sqrt(f1score/g) - ((f1score/g)*sin(10.*PI*f1score));
     return g * h;
 }
@@ -90,7 +105,12 @@ double zdt4f1(const std::vector<double>& values, double parameter) {
 
 double zdt4f2(const std::vector<double>& values, double f1score) {
     gradeAmount2++;
-    double g = 11. + ((values[1]*values[1])-(10.*cos(4.*PI*values[1])));
+    int m = values.size();
+    double sum = 0;
+    for(int i = 1; i < m; i++){
+        sum += (values[i]*values[i])-(10.*cos(4.*PI*values[i]));
+    }
+    double g = 1. + (10. * (double)(m - 1)) + sum;
     double h = 1. - sqrt(f1score / g);
     return g * h;
 }
@@ -102,7 +122,12 @@ double zdt6f1(const std::vector<double>& values, double parameter) {
 
 double zdt6f2(const std::vector<double>& values, double f1score) {
     gradeAmount2++;
-    double g = 1. + (9. * pow(values[1],0.25));
+    int m = values.size();
+    double sum = 0;
+    for(int i = 1; i < m; i++){
+        sum += values[i];
+    }
+    double g = 1. + (9. * pow(sum / (double)(m - 1),0.25));
     double h = 1. - ((f1score / g)*(f1score / g));
     return g * h;
 }
