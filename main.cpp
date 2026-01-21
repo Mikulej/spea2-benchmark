@@ -524,11 +524,11 @@ std::vector<Solution> recombine(const std::vector<Solution>& populationMating, i
 }
 
 void mutate(std::vector<Solution>& solutions, int mutationAmount, int zdt) {
-    std::normal_distribution<> randomOffset(0., 0.3);
+    std::normal_distribution<> randomOffset(0., 1.0);
     // std::uniform_real_distribution randomOffset(-0.3,0.3);
     int dimensions = solutions[0].values.size();
     if(zdt == 4){
-        std::normal_distribution<> randomOffsetZdt4(0., 1.5);
+        std::normal_distribution<> randomOffsetZdt4(0., 1.0);
         for (Solution& s : solutions) {
             std::vector<double> nonMutated = s.values;
 
@@ -719,7 +719,7 @@ std::vector<Solution> Spea2(const std::vector<Solution>& startPopulation, std::v
         populationPlusArchive.insert(populationPlusArchive.end(), archive.begin(), archive.end());
 
         //Tournament
-        std::vector<Solution> populationMating = tournamentSelection(archive, population.size());
+        std::vector<Solution> populationMating = tournamentSelection(archive, sqrt(population.size()));
 
         //Recombine, create offspring
         std::vector<Solution> offspring = recombine(populationMating, population.size(), objectives);
@@ -799,8 +799,8 @@ void setupObjectives(int zdt,std::vector<double (*)(const std::vector<double>& v
 int main() {
     int num = 100; //number of solutions
     int n = 50; //dimensions
-    int mutationAmount = sqrt(n); // 1 mutation means -> 1 random selected index shifted by randomOffset normalDistribution(0,0.3)
-    int zdt = 1;
+    mutationAmount = sqrt(n); // 1 mutation means -> 1 random selected index shifted by randomOffset normalDistribution(0,0.3)
+    int zdt = 6;
 
     //initalize objectives
     std::vector<double (*)(const std::vector<double>& values, double parameter)> objectives;
